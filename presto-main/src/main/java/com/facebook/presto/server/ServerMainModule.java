@@ -29,6 +29,9 @@ import com.facebook.presto.GroupByHashPageIndexerFactory;
 import com.facebook.presto.PagesIndexPageSorter;
 import com.facebook.presto.SystemSessionProperties;
 import com.facebook.presto.block.BlockJsonSerde;
+import com.facebook.presto.catalog.CatalogResource;
+import com.facebook.presto.catalog.DynamicRestCatalogStore;
+import com.facebook.presto.catalog.DynamicRestCatalogStoreConfig;
 import com.facebook.presto.client.NodeVersion;
 import com.facebook.presto.client.ServerInfo;
 import com.facebook.presto.common.block.Block;
@@ -517,6 +520,7 @@ public class ServerMainModule
         binder.bind(PageSinkManager.class).in(Scopes.SINGLETON);
         binder.bind(PageSinkProvider.class).to(PageSinkManager.class).in(Scopes.SINGLETON);
 
+
         // metadata
         binder.bind(StaticCatalogStore.class).in(Scopes.SINGLETON);
         configBinder(binder).bindConfig(StaticCatalogStoreConfig.class);
@@ -525,6 +529,14 @@ public class ServerMainModule
         binder.bind(FunctionAndTypeManager.class).in(Scopes.SINGLETON);
         binder.bind(MetadataManager.class).in(Scopes.SINGLETON);
         binder.bind(Metadata.class).to(MetadataManager.class).in(Scopes.SINGLETON);
+
+        //zhz add metadata
+        jaxrsBinder(binder).bind(CatalogResource.class);
+        binder.bind(DynamicRestCatalogStore.class).in(Scopes.SINGLETON);
+        configBinder(binder).bindConfig(DynamicRestCatalogStoreConfig.class);
+        //todo zk DynamicCatalogStore mvn dependency:analyze
+//        binder.bind(DynamicCatalogStore.class).in(Scopes.SINGLETON);
+//        configBinder(binder).bindConfig(DynamicCatalogStoreConfig.class);
 
         // row expression utils
         binder.bind(DomainTranslator.class).to(RowExpressionDomainTranslator.class).in(Scopes.SINGLETON);

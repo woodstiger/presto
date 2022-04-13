@@ -31,6 +31,8 @@ import com.facebook.airlift.node.NodeModule;
 import com.facebook.airlift.tracetoken.TraceTokenModule;
 import com.facebook.drift.server.DriftServer;
 import com.facebook.drift.transport.netty.server.DriftNettyServerTransport;
+import com.facebook.presto.catalog.DynamicRestCatalogStore;
+import com.facebook.presto.catalog.DynamicRestCatalogStoreConfig;
 import com.facebook.presto.dispatcher.QueryPrerequisitesManager;
 import com.facebook.presto.dispatcher.QueryPrerequisitesManagerModule;
 import com.facebook.presto.eventlistener.EventListenerManager;
@@ -141,6 +143,19 @@ public class PrestoServer
             ServerConfig serverConfig = injector.getInstance(ServerConfig.class);
 
             if (!serverConfig.isResourceManager()) {
+//                injector.getInstance(StaticCatalogStore.class).loadCatalogs();
+            }
+
+            DynamicRestCatalogStoreConfig dynamicRestCatalogStoreConfig = injector.getInstance(DynamicRestCatalogStoreConfig.class);;
+            if ("0".equals(dynamicRestCatalogStoreConfig.getCatalogZkFlag())) {
+                //todo zk DynamicCatalogStore  mvn dependency:analyze
+//                DynamicCatalogStore dynamicCatalogStore = injector.getInstance(DynamicCatalogStore.class);
+//                if (dynamicCatalogStore.isEnabledDynamic()) {
+//                    dynamicCatalogStore.loadCatalogs();
+//                }
+            } else if ("1".equals(dynamicRestCatalogStoreConfig.getCatalogZkFlag())) {
+                injector.getInstance(DynamicRestCatalogStore.class).loadCatalogs();
+            } else {
                 injector.getInstance(StaticCatalogStore.class).loadCatalogs();
             }
 
