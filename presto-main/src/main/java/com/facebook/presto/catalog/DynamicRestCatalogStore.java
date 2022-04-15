@@ -119,7 +119,7 @@ public class DynamicRestCatalogStore {
                     log.error("--scheduledExecutorService run error --", e.getMessage());
                 }
             }
-        }, 60, config.getCatalogRestTimeInterval(), TimeUnit.SECONDS);
+        }, 36, config.getCatalogRestTimeInterval(), TimeUnit.SECONDS);
 // ?
 //        additionalCatalogs.forEach(this::loadCatalog);
 
