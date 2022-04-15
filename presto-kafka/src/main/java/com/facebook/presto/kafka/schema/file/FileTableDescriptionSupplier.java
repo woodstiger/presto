@@ -22,10 +22,14 @@ import com.facebook.presto.kafka.KafkaTopicFieldGroup;
 import com.facebook.presto.kafka.schema.MapBasedTableDescriptionSupplier;
 import com.facebook.presto.kafka.schema.TableDescriptionSupplier;
 import com.facebook.presto.spi.SchemaTableName;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Resources;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -33,10 +37,8 @@ import javax.inject.Provider;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.net.URL;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -82,12 +84,47 @@ public class FileTableDescriptionSupplier
         log.debug("Loading kafka table definitions from %s", tableDescriptionDir.getAbsolutePath());
 
         try {
-            for (File file : listFiles(tableDescriptionDir)) {
+            /*for (File file : listFiles(tableDescriptionDir)) {
                 if (file.isFile() && file.getName().endsWith(".json")) {
                     KafkaTopicDescription table = topicDescriptionCodec.fromJson(readAllBytes(file.toPath()));
                     String schemaName = table.getSchemaName().orElse(defaultSchema);
                     log.debug("Kafka table %s.%s: %s", schemaName, table.getTableName(), table);
                     builder.put(new SchemaTableName(schemaName, table.getTableName()), table);
+                }
+            }*/
+
+            /**从这里入手修改读取文件为api接口**/
+            if (!tableDescriptionDir.getAbsolutePath().contains("http")) {
+                for (File file : listFiles(tableDescriptionDir)) {
+                    if (file.isFile() && file.getName().endsWith(".json")) {
+                        KafkaTopicDescription table = topicDescriptionCodec.fromJson(readAllBytes(file.toPath()));
+                        String schemaName = table.getSchemaName().orElse(defaultSchema);
+                        log.debug("Kafka table %s.%s: %s", schemaName, table.getTableName(), table);
+                        builder.put(new SchemaTableName(schemaName, table.getTableName()), table);
+                    }
+                }
+            } else {
+                List<String> lst = new ArrayList<>();
+                List<String> jsonStrList = new ArrayList<>();
+                String tableDescriptionUrl = tableDescriptionDir.getPath();
+                try {
+                    tableDescriptionUrl = tableDescriptionUrl.replace("http:\\", "http://");
+                    tableDescriptionUrl = tableDescriptionUrl.replace("https:\\", "https://");
+                    tableDescriptionUrl = tableDescriptionUrl.replace("\\", "/");
+                    URL url = new URL(tableDescriptionUrl);
+                    lst = Resources.asCharSource(url, Charsets.UTF_8).readLines();
+                    jsonStrList = jsonToList(lst.get(0), String.class);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    log.error(e.getMessage());
+                }
+                for (String jsonStr : jsonStrList) {
+                    if (null != jsonStr) {
+                        KafkaTopicDescription table = topicDescriptionCodec.fromJson(jsonStr);
+                        String schemaName = table.getSchemaName().orElse(defaultSchema);
+                        log.debug("Kafka table %s.%s: %s", schemaName, table.getTableName(), table);
+                        builder.put(new SchemaTableName(schemaName, table.getTableName()), table);
+                    }
                 }
             }
 
@@ -149,4 +186,34 @@ public class FileTableDescriptionSupplier
         checkArgument(parts.size() == 2, "Invalid schemaTableName: %s", schemaTableName);
         return new SchemaTableName(parts.get(0), parts.get(1));
     }
+
+    /**
+     * json字符串转成list
+     *
+     * @param jsonString
+     * @param cls
+     * @return
+     */
+    public static <T> List<T> jsonToList(String jsonString, Class<T> cls) {
+        try {
+            return new ObjectMapper().readValue(jsonString, getCollectionType(List.class, cls));
+        } catch (Exception e) {
+            e.printStackTrace();
+            String className = cls.getSimpleName();
+            log.error(" parse json [{}] to class [{}] error：{}", jsonString, className, e);
+        }
+        return null;
+    }
+
+    /**
+     * 获取泛型的Collection Type
+     *
+     * @param collectionClass 泛型的Collection
+     * @param elementClasses  实体bean
+     * @return JavaType Java类型
+     */
+    private static JavaType getCollectionType(Class<?> collectionClass, Class<?>... elementClasses) {
+        return new ObjectMapper().getTypeFactory().constructParametricType(collectionClass, elementClasses);
+    }
+
 }
