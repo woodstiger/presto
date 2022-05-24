@@ -58,6 +58,47 @@ public class KafkaConnectorConfig
      */
     private String clusterMetadataSupplier = FileKafkaClusterMetadataSupplier.NAME;
 
+    private String saslMechanism = "GSSAPI";
+    private String saslJaasConfig = null;
+    private String securityProtocol = "PLAINTEXT";
+
+
+    public String getSaslMechanism()
+    {
+        return saslMechanism;
+    }
+
+    @Config("kafka.sasl-mechanism")
+    public KafkaConnectorConfig setSaslMechanism(String saslMechanism)
+    {
+        this.saslMechanism = saslMechanism;
+        return this;
+    }
+
+    public String getSaslJaasConfig()
+    {
+        return saslJaasConfig;
+    }
+
+    @Config("kafka.sasl-jaas-config")
+    public KafkaConnectorConfig setSaslJaasConfig(String saslJaasConfig)
+    {
+        this.saslJaasConfig = saslJaasConfig;
+        return this;
+    }
+
+    public String getSecurityProtocol()
+    {
+        return securityProtocol;
+    }
+
+    @Config("kafka.security-protocol")
+    public KafkaConnectorConfig setSecurityProtocol(String securityProtocol)
+    {
+        this.securityProtocol = securityProtocol;
+        return this;
+    }
+
     @NotNull
     public String getDefaultSchema()
     {

@@ -41,13 +41,18 @@ public class KafkaConsumerManager
     private static final Logger log = Logger.get(KafkaConsumerManager.class);
     private final int maxPartitionFetchBytes;
     private final int maxPollRecords;
-
+    private   String saslMechanism = "GSSAPI";
+    private   String saslJaasConfig = null;
+    private   String securityProtocol = "PLAINTEXT";
     @Inject
     public KafkaConsumerManager(KafkaConnectorConfig kafkaConnectorConfig)
     {
         requireNonNull(kafkaConnectorConfig, "kafkaConfig is null");
         this.maxPartitionFetchBytes = kafkaConnectorConfig.getMaxPartitionFetchBytes();
         this.maxPollRecords = kafkaConnectorConfig.getMaxPollRecords();
+        this.saslMechanism = kafkaConnectorConfig.getSaslMechanism();
+        this.saslJaasConfig = kafkaConnectorConfig.getSaslJaasConfig();
+        this.securityProtocol = kafkaConnectorConfig.getSecurityProtocol();
     }
 
     KafkaConsumer<ByteBuffer, ByteBuffer> createConsumer(String threadName, HostAddress hostAddress)
@@ -59,6 +64,16 @@ public class KafkaConsumerManager
         properties.put(MAX_PARTITION_FETCH_BYTES_CONFIG, maxPartitionFetchBytes);
         properties.put(CLIENT_ID_CONFIG, String.format("%s-%s", threadName, hostAddress.toString()));
         properties.put(ENABLE_AUTO_COMMIT_CONFIG, false);
+
+        //z add start
+        //GSSAPI
+        properties.put("sasl.mechanism", saslMechanism);
+        String jaasConfig ="org.apache.kafka.common.security.scram.ScramLoginModule required username=\"admin\" password=\"Admin@123\";";
+        // null
+        properties.put("sasl.jaas.config", saslJaasConfig);
+        // PLAINTEXT
+        properties.put("security.protocol", securityProtocol);
+        // zhz add end
 
         try (ThreadContextClassLoader ignored = new ThreadContextClassLoader(KafkaPlugin.class.getClassLoader())) {
             log.debug("Creating KafkaConsumer for thread %s broker %s", threadName, hostAddress.toString());
