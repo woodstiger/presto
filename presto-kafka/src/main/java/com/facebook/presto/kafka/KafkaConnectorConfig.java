@@ -61,7 +61,43 @@ public class KafkaConnectorConfig
     private String saslMechanism = "GSSAPI";
     private String saslJaasConfig = null;
     private String securityProtocol = "PLAINTEXT";
+    private   String  kafkaSchemaRegistryUrl =null;
+    private   String  kafkaKeyDeserializer  ;
+    private   String  kafkaValueDeserializer  ;
 
+    public String getKafkaSchemaRegistryUrl()
+    {
+        return kafkaSchemaRegistryUrl;
+    }
+
+    @Config("kafka.schema-registry-url")
+    public KafkaConnectorConfig setKafkaSchemaRegistryUrl(String kafkaSchemaRegistryUrl)
+    {
+        this.kafkaSchemaRegistryUrl = kafkaSchemaRegistryUrl;
+        return this;
+    }
+    public String getKafkaKeyDeserializer()
+    {
+        return kafkaKeyDeserializer;
+    }
+
+    @Config("kafka.key-deserializer")
+    public KafkaConnectorConfig setKafkaKeyDeserializer(String kafkaKeyDeserializer)
+    {
+        this.kafkaKeyDeserializer = kafkaKeyDeserializer;
+        return this;
+    }
+    public String getKafkaValueDeserializer()
+    {
+        return kafkaValueDeserializer;
+    }
+
+    @Config("kafka.value-deserializer")
+    public KafkaConnectorConfig setKafkaValueDeserializer(String kafkaValueDeserializer)
+    {
+        this.kafkaValueDeserializer = kafkaValueDeserializer;
+        return this;
+    }
 
     public String getSaslMechanism()
     {

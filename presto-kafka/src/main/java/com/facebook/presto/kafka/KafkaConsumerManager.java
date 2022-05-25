@@ -44,6 +44,9 @@ public class KafkaConsumerManager
     private   String saslMechanism = "GSSAPI";
     private   String saslJaasConfig = null;
     private   String securityProtocol = "PLAINTEXT";
+    private   String  KAFKA_SCHEMA_REGISTRY_URL =null;
+    private   String  KAFKA_KEY_DESERIALIZER ;
+    private   String  KAFKA_VALUE_DESERIALIZER ;
     @Inject
     public KafkaConsumerManager(KafkaConnectorConfig kafkaConnectorConfig)
     {
@@ -53,6 +56,9 @@ public class KafkaConsumerManager
         this.saslMechanism = kafkaConnectorConfig.getSaslMechanism();
         this.saslJaasConfig = kafkaConnectorConfig.getSaslJaasConfig();
         this.securityProtocol = kafkaConnectorConfig.getSecurityProtocol();
+        this.KAFKA_SCHEMA_REGISTRY_URL = kafkaConnectorConfig.getKafkaSchemaRegistryUrl();
+        this.KAFKA_KEY_DESERIALIZER = kafkaConnectorConfig.getKafkaKeyDeserializer();
+        this.KAFKA_VALUE_DESERIALIZER = kafkaConnectorConfig.getKafkaValueDeserializer();
     }
 
     KafkaConsumer<ByteBuffer, ByteBuffer> createConsumer(String threadName, HostAddress hostAddress)
@@ -73,6 +79,11 @@ public class KafkaConsumerManager
         properties.put("sasl.jaas.config", saslJaasConfig);
         // PLAINTEXT
         properties.put("security.protocol", securityProtocol);
+        if(null != KAFKA_SCHEMA_REGISTRY_URL) {
+            properties.put("key.deserializer", KAFKA_KEY_DESERIALIZER);
+            properties.put("value.deserializer", KAFKA_VALUE_DESERIALIZER);
+            properties.put("schema.registry.url", KAFKA_SCHEMA_REGISTRY_URL);
+        }
         // zhz add end
 
         try (ThreadContextClassLoader ignored = new ThreadContextClassLoader(KafkaPlugin.class.getClassLoader())) {
