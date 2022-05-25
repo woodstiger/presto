@@ -85,7 +85,6 @@ public class KafkaConsumerManager
             properties.put("schema.registry.url", KAFKA_SCHEMA_REGISTRY_URL);
         }
         // zhz add end
-
         try (ThreadContextClassLoader ignored = new ThreadContextClassLoader(KafkaPlugin.class.getClassLoader())) {
             log.debug("Creating KafkaConsumer for thread %s broker %s", threadName, hostAddress.toString());
             return new KafkaConsumer<>(properties, new ByteBufferDeserializer(), new ByteBufferDeserializer());
